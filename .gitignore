@@ -1,0 +1,7 @@
+vendor/
+.idea/
+.vscode/
+*.lock
+composer.lock
+phpunit.xml.bak
+nbproject/
