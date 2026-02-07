@@ -1,0 +1,34 @@
+{
+    "name": "hibernator/hibernator-phplib",
+    "description": "A Durable Execution Engine for PHP using Fibers and the Replay Pattern.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Hibernator Team",
+            "email": "team@hibernator.io"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hibernator\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Hibernator\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
