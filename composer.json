@@ -1,6 +1,6 @@
 {
     "name": "hibernator/hibernator-phplib",
-    "description": "A Durable Execution Engine for PHP using Fibers and the Replay Pattern.",
+    "description": "Write PHP code that sleeps for months. A Durable Execution Engine using Fibers and Replay Pattern to replace complex cron/queue logic.",
     "type": "library",
     "license": "MIT",
     "authors": [

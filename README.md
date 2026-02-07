@@ -1,33 +1,55 @@
-# Hibernator
+# Hibernator 💤
 
-**The Durable Execution Engine for PHP.**
+**Write PHP code that sleeps for months, survives server crashes, and wakes up exactly where it left off.**
 
-Hibernator is a PHP library that enables developers to write long-running, stateful workflows as if they were simple, synchronous scripts. By leveraging **PHP Fibers** and the **Replay Pattern**, Hibernator abstracts away the complexity of state persistence, allowing your code to "sleep" for days, months, or years, and wake up exactly where it left off.
+Hibernator is a **Durable Execution Engine** for PHP 8.2+. It eliminates the complexity of queues, cron jobs, and state machines by allowing you to write long-running business processes as simple, linear code.
 
-## 🌟 The Manifesto: Why Hibernator?
+## 🌟 The Problem: "Cron & Queue Spaghetti"
 
-In the modern distributed world, long-running business processes are often broken into fragmented, stateless pieces:
--   A cron job to check for due dates.
--   A queue worker to send emails.
--   A database column to track strict state flags (`status='WAITING_FOR_PAYMENT'`).
+Modern applications are full of multi-step processes that span hours, days, or even months:
+*   *User signs up -> Wait 3 days -> Send email -> Wait 7 days -> Check subscription.*
+*   *Order placed -> Charge card -> Wait for shipping -> Update inventory.*
 
-This fragmentation loses the **context** of the process. You lose the ability to see the flow of logic in one place.
+Traditionally, you implement this by fragmenting your logic into:
+1.  **Database Columns:** `status = 'WAITING_FOR_EMAIL'`, `next_check = '2025-01-01'`.
+2.  **Cron Jobs:** Scripts that poll the DB every minute: `SELECT * FROM users WHERE next_check < NOW()`.
+3.  **Queue Workers:** Jobs that handle one tiny slice of logic and then dispatch the next job.
 
-**Hibernator brings the context back.**
+**The result?** Your business logic is scattered across 10 different files, 3 different infrastructure pieces, and it's impossible to read the flow of the program.
 
-Instead of managing 5 different queue handlers and 3 cron jobs, you write:
+## ⚡ The Solution: Hibernator
+
+Hibernator lets you write the entire flow in **one single PHP file**.
 
 ```php
-$result = yield WorkflowContext::execute(new SignupActivity($user));
+// The entire user onboarding flow in one function
+public function run(string $email) {
+    // Step 1: Send welcome
+    yield WorkflowContext::execute(new SendEmail($email, 'Welcome!'));
 
-// Sleep for 7 days
-yield WorkflowContext::wait('7 days');
+    // Step 2: Sleep for 3 days (This actually stops CPU usage!)
+    // The state is saved to the DB. The process exits.
+    yield WorkflowContext::wait('3 days');
 
-// Automatically wakes up here
-yield WorkflowContext::execute(new ChargeSubscriptionActivity($user));
+    // Step 3: Wake up automatically and continue
+    // Even if you redeployed your server 50 times in between.
+    yield WorkflowContext::execute(new SendEmail($email, 'How is it going?'));
+    
+    // Step 4: Check billing
+    $isPaid = yield WorkflowContext::execute(new CheckBilling($email));
+    
+    if ($isPaid) {
+        yield WorkflowContext::execute(new GrantPremiumAccess($email));
+    }
+}
 ```
 
-Hibernator handles the checkpointing, sleeping, and resumption automatically.
+### How is this possible?
+Hibernator uses **PHP Fibers** to suspend execution and the **Replay Pattern** (Event Sourcing) to restore state.
+1.  When you `yield wait`, Hibernator saves your execution history to the database and kills the process. Zero resources are used.
+2.  When the time is up, a Worker boots up the workflow.
+3.  It **replays** previous steps instantly from the database history (skipping the actual work) to restore variables and memory state.
+4.  It continues executing from the exact line where it left off.
 
 ---
 
