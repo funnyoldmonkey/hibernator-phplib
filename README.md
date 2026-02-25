@@ -19,7 +19,7 @@ Traditionally, you implement this by fragmenting your logic into:
 
 ## ⚡ The Solution: Hibernator
 
-Hibernator lets you write the entire flow in **one single PHP file**.
+Hibernator lets you write the entire flow in **one single PHP file**. 
 
 ```php
 // The entire user onboarding flow in one function
